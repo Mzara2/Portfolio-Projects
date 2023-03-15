@@ -1,0 +1,72 @@
+You have been asked to find the job titles of the highest-paid employees.
+Your output should include the highest-paid title or multiple titles with the same salary.
+Table 'Worker'               Table 'Title'
+worker_id: int               Worker_ref_id int
+first_name: varchar          worker_title varchar
+last_name: varchar           affected_from datetime
+salary: int
+joining_date: datetime
+department: varchar
+[My Solution:
+select t.worker_title,max(w.salary)
+from worker w join title t
+on w.worker_id = t.worker_ref_id
+group by t.worker_title
+Order by max(w.salary) DESC
+limit 2;]
+--
+Find the top 5 states with the most 5 star businesses. 
+Output the state name along with the number of 5-star businesses and order records by the number of 5-star businesses in descending order. 
+In case there are ties in the number of businesses, return all the unique states. If two states have the same result, sort them in alphabetical order.
+Table 'yelp_business'
+business_id: varchar    Stars: float
+name:        varchar    review_count: int
+neighborhood:varchar    is_open: int
+address:     varchar    categories: varchar
+city:        varchar
+state:       varchar
+postal_code: varchar
+latitude:    float
+longitude:   float
+[My Solution:
+with 5_star as (select state, count(*) as num_of_5_star_business,rank() over (order by count(*) DESC) as rnk
+from yelp_business
+where stars = 5 
+group by state
+order by 2 DESC ,1 )
+
+select st.state,st.num_of_5_star_business
+from 5_star st
+where st.rnk <=5
+order by 2 DESC,st.state]
+--
+
++---------------+---------+
+| Column Name   | Type    |
++---------------+---------+
+| id            | int     |
+| visit_date    | date    |
+| people        | int     |
++---------------+---------+
+visit_date is the primary key for this table.
+Each row of this table contains the visit date and visit id to the stadium with the number of people during the visit.
+No two rows will have the same visit_date, and as the id increases, the dates increase as well.
+Write an SQL query to display the records with three or more rows with consecutive id's, and the number of people is greater than or equal to 100 for each.
+Return the result table ordered by visit_date in ascending order.
+([My solution:
+SELECT ID
+    , visit_date
+    , people
+FROM (
+    SELECT ID
+        , visit_date
+        , people
+        , LEAD(people, 1) OVER (ORDER BY id) nxt
+        , LEAD(people, 2) OVER (ORDER BY id) nxt2
+        , LAG(people, 1) OVER (ORDER BY id) pre
+        , LAG(people, 2) OVER (ORDER BY id) pre2
+    FROM Stadium
+) cte 
+WHERE (cte.people >= 100 AND cte.nxt >= 100 AND cte.nxt2 >= 100) 
+    OR (cte.people >= 100 AND cte.nxt >= 100 AND cte.pre >= 100)  
+    OR (cte.people >= 100 AND cte.pre >= 100 AND cte.pre2 >= 100)])
